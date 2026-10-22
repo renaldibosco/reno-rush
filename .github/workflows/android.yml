@@ -1,0 +1,31 @@
+name: Build APK
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+      - name: Bundle the game into the app (works offline)
+        run: |
+          mkdir -p android/app/src/main/assets
+          curl -sSL https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js -o android/app/src/main/assets/three.min.js
+          sed 's#https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js#three.min.js#' index.html > android/app/src/main/assets/index.html
+      - name: Build APK
+        working-directory: android
+        run: gradle assembleRelease --no-daemon
+      - name: Rename
+        run: cp android/app/build/outputs/apk/release/app-release.apk RenoRush.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RenoRush-apk
+          path: RenoRush.apk
