@@ -3,6 +3,8 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -29,3 +31,10 @@ jobs:
         with:
           name: RenoRush-apk
           path: RenoRush.apk
+      - name: Save APK to the apk branch
+        run: |
+          mkdir out && cp RenoRush.apk out/ && cd out
+          git init -q && git checkout -q -b apk
+          git config user.name "github-actions" && git config user.email "actions@github.com"
+          git add RenoRush.apk && git commit -q -m "APK from ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" apk
